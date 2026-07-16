@@ -19,6 +19,7 @@ BUFFER_SIZE = 60000 # veri seti boyutu
 BATCH_SIZE = 128 # batch boyutu
 NOISE_DIM = 100 # generatora verilecek gurultu vektorunun boyutu
 IMG_SHAPE = (28, 28, 1) # giris goruntusu boyutu
+EPOCHS = 2
 
 # veri seti yukle
 (train_images, _), (_, _) = fashion_mnist.load_data() # sadece goruntuleri al, etiketleri kullanma
@@ -39,6 +40,10 @@ def make_generator_model():
         layers.BatchNormalization(),
         layers.LeakyReLU(),
         
+layers.Conv2DTranspose(64, (5, 5), strides=(2, 2), padding="same", use_bias=False),
+        layers.BatchNormalization(),
+        layers.LeakyReLU(),
+
         layers.Conv2DTranspose(1, (5, 5), strides=(2, 2), padding="same", use_bias=False, activation="tanh")
     ])
     
@@ -103,3 +108,36 @@ def generate_and_save_images(model, epoch, test_input):
     plt.close()
 
 # egitim fonksiyonu tanimla: generator ve discriminator modellerini egitecek
+def train(dataset, epochs):
+    for epoch in range(1, epochs + 1):
+        gen_loss_total = 0 # generator toplam kaybi
+        disc_loss_total = 0 # discriminator toplam kaybi
+        batch_count = 0
+        
+        for image_batch in dataset:
+            noise = tf.random.normal([BATCH_SIZE, NOISE_DIM]) # gurultu uret
+            
+            with tf.GradientTape() as gen_tape, tf.GradientTape() as disc_tape:
+                generated_images = generator(noise, training=True) # sahte goruntuler uret
+                
+                real_output = discriminator(image_batch, training=True) # gercek goruntu sonucu
+                fake_output = discriminator(generated_images, training=True) # sahte goruntu sonucu
+                
+                gen_loss = generator_loss(fake_output) # generator kaybi
+                disc_loss = discriminator_loss(real_output, fake_output) # discriminator kaybi
+                
+            gradients_gen = gen_tape.gradient(gen_loss, generator.trainable_variables)
+            gradients_disc = disc_tape.gradient(disc_loss, discriminator.trainable_variables)
+            
+            generator_optimizer.apply_gradients(zip(gradients_gen, generator.trainable_variables)) # Generator guncelle
+            discriminator_optimizer.apply_gradients(zip(gradients_disc, discriminator.trainable_variables)) # discriminator guncelle
+            
+            gen_loss_total += gen_loss
+            disc_loss_total += disc_loss
+            batch_count += 1
+            
+        print(f"Epoch: {epoch}/{epochs} -- Generator Loss: {gen_loss_total/batch_count:.3f} -- Discriminator Loss: {disc_loss_total/batch_count:.3f}")
+        generate_and_save_images(generator, epoch, seed) # uretilen goruntuleri kaydet
+
+# Eğitimi başlatmak için (En son satır)
+train(train_dataset, EPOCHS)
