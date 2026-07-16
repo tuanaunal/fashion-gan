@@ -5,10 +5,6 @@ Fashion MNIST veri seti 10 class iceren 28x28 boyutunda gri tonlamali goruntuler
 Fashion veri seti icerisinde 10 farkli class bulunur:
 - T-shirt/top, sneaker, pullover, dress, coat, sandal, shirt, sneaker, bag, ankle boot
 
-Plan program?
-Pip libraries?
-import libraries?
-
 """
 
 # import libraries
@@ -19,8 +15,14 @@ import matplotlib.pyplot as plt
 import os
 from tensorflow.keras.datasets import fashion_mnist
 
-# veri seti yukle
+BUFFER_SIZE = 60000 # veri seti boyutu
+BATCH_SIZE = 128 # batch boyutu
 
+# veri seti yukle
+(train_images, _), (_, _) = fashion_mnist.load_data() # sadece goruntuleri al, etiketleri kullanma
+train_images = train_images.reshape(-1, 28, 28, 1).astype("float32") # sekillendir ve floata cevir
+train_images = (train_images - 127.5) / 127.5 # normalize et -1 ile 1 arasina
+train_dataset = tf.data.Dataset.from_tensor_slices(train_images).shuffle(BUFFER_SIZE).batch(BATCH_SIZE) # veri setini shuffle et ve batch'le
 
 # generator modeli tanimla: fake goruntuler uretecek
 
