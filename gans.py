@@ -18,6 +18,7 @@ from tensorflow.keras.datasets import fashion_mnist
 BUFFER_SIZE = 60000 # veri seti boyutu
 BATCH_SIZE = 128 # batch boyutu
 NOISE_DIM = 100 # generatora verilecek gurultu vektorunun boyutu
+IMG_SHAPE = (28, 28, 1) # giris goruntusu boyutu
 
 # veri seti yukle
 (train_images, _), (_, _) = fashion_mnist.load_data() # sadece goruntuleri al, etiketleri kullanma
@@ -43,8 +44,28 @@ def make_generator_model():
     
     return model
 
-# discriminator modeli tanimla: gercek ve fake goruntuler arasinda ayirim yapacak
+# Modeli oluşturalım
+# generator = make_generator_model()
 
+# discriminator modeli tanimla: gercek ve fake goruntuler arasinda ayirim yapacak
+def make_discriminator_model():
+    model = tf.keras.Sequential([
+        layers.Conv2D(64, (5, 5), strides=(2, 2), padding="same", input_shape=IMG_SHAPE),
+        layers.LeakyReLU(),
+        layers.Dropout(0.3),
+        
+        layers.Conv2D(128, (5, 5), strides=(2, 2), padding="same"),
+        layers.LeakyReLU(),
+        layers.Dropout(0.3),
+        
+        layers.Flatten(), # 3D'yi duzlestir
+        layers.Dense(1) # binary classification real/fake
+    ])
+    
+    return model
+
+# Modeli oluşturalım
+# discriminator = make_discriminator_model()
 
 # kayip loss function tanimla, optimizasyon algoritmasi tanimla
 
