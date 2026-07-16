@@ -85,6 +85,21 @@ generator_optimizer = tf.keras.optimizers.Adam(1e-4)
 discriminator_optimizer = tf.keras.optimizers.Adam(1e-4)
 
 # yardimci fonksiyonlar tanimla: gercek ve fake goruntuler uret, discriminator ve generator modellerini guncelle
+seed = tf.random.normal([16, NOISE_DIM]) # sabit gurultu ornegi
 
+def generate_and_save_images(model, epoch, test_input):
+    predictions = model(test_input, training=False) # modeli sadece degerlendirme modunda calistir
+    fig = plt.figure(figsize=(4, 4))
+    
+    for i in range(predictions.shape[0]):
+        plt.subplot(4, 4, i+1)
+        plt.imshow((predictions[i, :, :, 0] + 1) / 2, cmap="gray") # goruntuleri 0 and 1 arasina rescale et
+        plt.axis("off")
+        
+    if not os.path.exists("generated_images"):
+        os.makedirs("generated_images")
+        
+    plt.savefig(f"generated_images/image_at_epoch_{epoch:04d}.png")
+    plt.close()
 
 # egitim fonksiyonu tanimla: generator ve discriminator modellerini egitecek
