@@ -67,8 +67,22 @@ def make_discriminator_model():
 # Modeli oluşturalım
 # discriminator = make_discriminator_model()
 
-# kayip loss function tanimla, optimizasyon algoritmasi tanimla
+# kayip (loss) function tanimla, optimizasyon algoritmasi tanimla
+cross_entropy = tf.keras.losses.BinaryCrossentropy(from_logits=True)
 
+def discriminator_loss(real_output, fake_output):
+    real_loss = cross_entropy(tf.ones_like(real_output), real_output) # gercek = 1 etiketine sahip olsun
+    fake_loss = cross_entropy(tf.zeros_like(fake_output), fake_output) # sahte goruntuler icin hedef 0 olsun
+    return real_loss + fake_loss # toplam discriminator kaybi
+
+def generator_loss(fake_output):
+    return cross_entropy(tf.ones_like(fake_output), fake_output) # generator sahte goruntuyu 1 gibi gostericek
+
+generator = make_generator_model()
+discriminator = make_discriminator_model()
+
+generator_optimizer = tf.keras.optimizers.Adam(1e-4)
+discriminator_optimizer = tf.keras.optimizers.Adam(1e-4)
 
 # yardimci fonksiyonlar tanimla: gercek ve fake goruntuler uret, discriminator ve generator modellerini guncelle
 
